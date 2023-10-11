@@ -9,6 +9,18 @@
           rel="stylesheet"
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
           crossorigin="anonymous">
+    <style>
+        .alert.alert-success {
+            width: 100%; /* Задаємо блоку ширину 100% */
+            word-wrap: break-word; /* Додаємо автоматичний перенос слова */
+        }
+        .table td:nth-child(2) {
+            max-width: 100px; /* Максимальна ширина колонки "Результат" */
+            overflow: auto; /* Включення скроллу для завеликих даних */
+            white-space: pre-line; /* Перенесення рядка для завеликих даних */
+        }
+
+    </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -29,8 +41,47 @@
 <br /><br />
 <div class="container">
     <div class="row">
-        <h1 class="text-center"> Registration and Login System </h1>
+        <div class="col-md-6 offset-md-3">
+            <form th:action="@{/calculate}" method="post">
+                <div class="mb-3">
+                    <label for="number" class="form-label">Введіть число:</label>
+                    <input type="number" class="form-control" id="number" name="number" required min="1" max="300001">
+                </div>
+                <button type="submit" class="btn btn-primary">Порахувати</button>
+            </form>
+        </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3">
+            <div th:if="${result != null}" class="alert alert-success">
+                <p th:text="'Факторіал числа ' + ${number} + ' дорівнює '"></p>
+                <textarea rows="5" cols="50" readonly th:text="${result}"></textarea>
+            </div>
+
+        </div>
+    </div>
+    <table class="table table-bordered table-hover">
+        <colgroup>
+            <col style="width: 100px;"> <!-- Фіксована ширина для колонки "Результат" -->
+            <!-- Додайте інші col-елементи для інших колонок за потреби -->
+        </colgroup>
+    <thead class="table-dark">
+        <tr>
+            <th>Число</th>
+            <th>Результат</th>
+            <th>Час</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="operation : ${operations}">
+            <td th:text="${operation.number}"></td>
+            <td th:text="${operation.result}"></td>
+            <td th:text="${operation.time}"></td>
+<!--            <td th:text="${#dates.format(operation.time, 'dd.MM.yyyy HH:mm:ss')}"></td> &lt;!&ndash; Відображаємо час у зручному форматі &ndash;&gt;-->
+        </tr>
+        </tbody>
+    </table>
 </div>
 </body>
 </html>

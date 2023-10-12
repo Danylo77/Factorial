@@ -43,7 +43,7 @@ public class AuthController {
             String currentEmail = userDetails.getUsername(); // Отримуємо email користувача
             User currentUser = userRepository.findByEmail(currentEmail); // Використовуємо findByEmail
             Long currentUserId = currentUser.getId(); // Отримуємо ID користувача
-            List<Calculation> operations = calculationRepository.findByUser_IdOrderByNumberAsc(currentUserId);
+            List<Calculation> operations = calculationRepository.findByUser_IdOrderByTimeDesc(currentUserId);
             model.addAttribute("operations", operations);
         }
         return "index";

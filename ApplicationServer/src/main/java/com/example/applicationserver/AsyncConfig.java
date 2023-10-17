@@ -2,6 +2,7 @@ package com.example.applicationserver;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -14,7 +15,7 @@ import java.util.concurrent.Executor;
 public class AsyncConfig {
 
     @Bean(name = "factorialExecutor")
-    public Executor factorialExecutor() {
+    public AsyncTaskExecutor factorialExecutor() { // Use AsyncTaskExecutor here
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(3);
         executor.setMaxPoolSize(3);

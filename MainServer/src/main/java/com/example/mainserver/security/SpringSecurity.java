@@ -40,6 +40,7 @@ public class SpringSecurity {
                                 .requestMatchers("/calculate").permitAll()
                                 .requestMatchers("/users").hasRole("ADMIN")
                                 .requestMatchers("/login").permitAll()
+                                .requestMatchers("/refreshHistory").permitAll()
                 )
                 .formLogin(
                         form -> form

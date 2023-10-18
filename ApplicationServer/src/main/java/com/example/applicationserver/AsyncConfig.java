@@ -17,9 +17,9 @@ public class AsyncConfig {
     @Bean(name = "factorialExecutor")
     public AsyncTaskExecutor factorialExecutor() { // Use AsyncTaskExecutor here
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(3);
-        executor.setQueueCapacity(5);
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(6);
         executor.setThreadNamePrefix("factorial-executor-");
         executor.setAwaitTerminationSeconds(200);
         executor.initialize();

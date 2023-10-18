@@ -1,6 +1,7 @@
 package com.example.applicationserver;
 
 import com.example.applicationserver.AsyncConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.ui.Model;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,36 +12,69 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.springframework.core.task.AsyncTaskExecutor;
+
 
 @RestController
 public class ApplicationServerController {
+    Map<Long, String> myMap = new HashMap<>();
+    AsyncConfig executor = new AsyncConfig();
+
+    @Autowired
+    @Qualifier("factorialExecutor")
+    private AsyncTaskExecutor taskExecutor;
 
     @PostMapping("/calculate")
     @Async("factorialExecutor")
-    public CompletableFuture<String> calculateFactorial(@RequestParam int number) {
+    public CompletableFuture<String> calculateFactorial(@RequestParam int number, @RequestParam Long idNumber) {
         if (number < 0) {
             throw new IllegalArgumentException("Input must be a non-negative integer");
         }
+        System.out.println("Thread " + Thread.currentThread().getName() + " for return " + number);
+        CompletableFuture.runAsync(() -> {
+            System.out.println("Thread: " + Thread.currentThread().getName() + " started processing " + number);
+                    BigInteger result = BigInteger.ONE;
+                    for (int i = 1; i <= number; i++) {
+                        result = result.multiply(BigInteger.valueOf(i));
+                    }
+            synchronized (myMap) {
+                myMap.put(idNumber, result.toString());
+            }
+            System.out.println("Thread " + Thread.currentThread().getName() + " finished processing " + number);
 
-        System.out.println("Thread " + Thread.currentThread().getName() + " started processing " + number);
+            }, taskExecutor);
 
-        BigInteger result = BigInteger.ONE;
-        for (int i = 1; i <= number; i++) {
-            result = result.multiply(BigInteger.valueOf(i));
-        }
 
-        System.out.println("Thread " + Thread.currentThread().getName() + " finished processing " + number);
+        return CompletableFuture.completedFuture("Запит прийнято");
 
-        return CompletableFuture.completedFuture(result.toString());
     }
 
+
+    @PostMapping("/refreshResult")
+    public String refreshHistory(@RequestParam Long idResult){
+        Set<Long> keys = myMap.keySet();
+
+        for (Long key : keys) {
+            System.out.println("Ключ: " + key);
+        }
+        if (myMap.containsKey(idResult)){
+            String result = myMap.get(idResult).toString();
+            myMap.remove(idResult);
+            return (result);
+        }
+        return "Іде обчислення";
+    }
 }

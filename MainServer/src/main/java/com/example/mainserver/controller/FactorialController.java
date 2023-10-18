@@ -5,8 +5,13 @@ import com.example.mainserver.entity.Calculation;
 import com.example.mainserver.entity.User;
 import com.example.mainserver.repository.CalculationRepository;
 import com.example.mainserver.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -20,12 +25,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
+
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
 public class FactorialController {
+    private Long idOper = Long.valueOf(100);
 
     @Autowired
     private CalculationRepository calculationRepository;
@@ -73,17 +80,20 @@ public class FactorialController {
             System.out.println(loadBalancer.getAllInfo());
             String freePort = loadBalancer.getFreePort();
             System.out.println(freePort);
-            String factorialServiceUrl = "http://localhost:" + freePort + "/calculate?number=" + number;
-            String factorial = restTemplate.postForObject(factorialServiceUrl, null, String.class);
+            idOper += 1;
 
 
   //
-            model.addAttribute("number", number);
-            model.addAttribute("result", factorial);
+            //model.addAttribute("number", number);
+           // model.addAttribute("result", factorial);
             Calculation calculation = new Calculation();
+            calculation.setIdResult(idOper);
             calculation.setNumber(number);
-            calculation.setResult(factorial.toString());
+            calculation.setResult("Запит прийнято");
             calculation.setTime(LocalDateTime.now());
+            calculation.setPort(Integer.valueOf(freePort));
+            String factorialServiceUrl = "http://localhost:" + freePort + "/calculate?number=" + number+ "&idNumber=" + idOper;
+            String factorial = restTemplate.postForObject(factorialServiceUrl, null, String.class);
 
             calculation.setUser(userRepository.findById(currentUserId).orElse(null));
             calculationRepository.save(calculation);
@@ -93,6 +103,33 @@ public class FactorialController {
 
 
         return "index"; // Назва вашої сторінки
+    }
+
+    @PostMapping("/refreshHistory")
+    public String refreshHistory(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String currentEmail = userDetails.getUsername(); // Отримуємо email користувача
+            User currentUser = userRepository.findByEmail(currentEmail); // Використовуємо findByEmail
+            Long currentUserId = currentUser.getId();
+
+            List<Calculation> operations = calculationRepository.findByUser_IdOrderByTimeDesc(currentUserId);
+            for (Calculation op: operations) {
+                if(op.getResult().contains("Запит прийнято") || op.getResult().contains("Іде обчислення")){
+                    String resultServiceUrl = "http://localhost:" + op.getPort() + "/refreshResult?idResult=" + op.getIdResult();
+                    System.out.println("idResult" + idOper);
+                    String newResult = restTemplate.postForObject(resultServiceUrl, null, String.class);
+                    op.setResult(newResult);
+                    //op.getId()
+                    calculationRepository.save(op);
+
+                }
+            }
+
+            model.addAttribute("operations", operations);
+        }
+        return "index";
     }
 
 //    private BigInteger calculateFactorial(int number) {

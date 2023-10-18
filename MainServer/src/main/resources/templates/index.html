@@ -66,11 +66,15 @@
             <col style="width: 100px;"> <!-- Фіксована ширина для колонки "Результат" -->
             <!-- Додайте інші col-елементи для інших колонок за потреби -->
         </colgroup>
+        <form th:action="@{/refreshHistory}" method="post">
+            <button type="submit" class="btn btn-primary">Оновити</button>
+        </form>
     <thead class="table-dark">
         <tr>
             <th>Число</th>
             <th>Результат</th>
             <th>Час</th>
+            <th>Порт</th>
         </tr>
         </thead>
         <tbody>
@@ -78,6 +82,7 @@
             <td th:text="${operation.number}"></td>
             <td th:text="${operation.result}"></td>
             <td th:text="${operation.time}"></td>
+            <td th:text="${operation.port}"></td>
 <!--            <td th:text="${#dates.format(operation.time, 'dd.MM.yyyy HH:mm:ss')}"></td> &lt;!&ndash; Відображаємо час у зручному форматі &ndash;&gt;-->
         </tr>
         </tbody>

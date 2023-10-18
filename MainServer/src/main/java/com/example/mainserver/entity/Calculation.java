@@ -30,6 +30,16 @@ public class Calculation {
     @JoinColumn(name = "user_id", nullable = false) // Ім'я стовпця в базі даних, що посилається на користувача
     private User user; // Додано поле для зберігання користувача
 
+    private int port;
+    private Long idResult;
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port){
+        this.port = port;
+    }
+
     public Long getId() {
         return id;
     }

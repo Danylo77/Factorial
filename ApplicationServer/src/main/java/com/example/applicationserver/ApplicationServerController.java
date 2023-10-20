@@ -31,6 +31,8 @@ import org.springframework.core.task.AsyncTaskExecutor;
 @RestController
 public class ApplicationServerController {
     Map<Long, String> myMap = new HashMap<>();
+    //Map<Integer, Long> timeMap = new HashMap<>();
+
     AsyncConfig executor = new AsyncConfig();
 
     @Autowired
@@ -41,16 +43,30 @@ public class ApplicationServerController {
     @Async("factorialExecutor")
     public CompletableFuture<String> calculateFactorial(@RequestParam int number, @RequestParam Long idNumber) {
         if (number < 0) {
-            throw new IllegalArgumentException("Input must be a non-negative integer");
+            throw new IllegalArgumentException("Input must be a non-negative integer and less then 200000");
         }
         System.out.println("Thread " + Thread.currentThread().getName() + " for return " + number);
         CompletableFuture.runAsync(() -> {
             System.out.println("Thread: " + Thread.currentThread().getName() + " started processing " + number);
+            long startTime = System.currentTimeMillis();
+            long endTime;
+            long executionTime;
+            long executionTimeInSeconds;
                     BigInteger result = BigInteger.ONE;
                     for (int i = 1; i <= number; i++) {
                         result = result.multiply(BigInteger.valueOf(i));
+                        if (number >= 40000 && i % 1000 == 0){
+
+                            myMap.put(idNumber, i + "/" +number);
+
+                        }
                     }
+            endTime = System.currentTimeMillis(); // Кінцевий час
+
+            executionTime = (endTime - startTime) / 1000; // Вирахування часу виконання в мілісекундах
+            System.out.println(executionTime);
             synchronized (myMap) {
+
                 myMap.put(idNumber, result.toString());
             }
             System.out.println("Thread " + Thread.currentThread().getName() + " finished processing " + number);
@@ -72,7 +88,7 @@ public class ApplicationServerController {
         }
         if (myMap.containsKey(idResult)){
             String result = myMap.get(idResult).toString();
-            myMap.remove(idResult);
+            //myMap.remove(idResult);
             return (result);
         }
         return "Іде обчислення";

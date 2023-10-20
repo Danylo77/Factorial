@@ -2,11 +2,38 @@ package com.example.mainserver;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
 import static java.lang.Math.min;
 
 public class LoadBalancer {
-    private final String[] ports = {"8081","8082"};
+    private final String[] ports = {"8081"};
+    private Queue<Integer> queue = new LinkedList<>();
 
+    public void addNumberToQueue(int number){
+        if (!isQueueFull()){
+            queue.offer(number);
+        }
+    }
+
+
+
+    public int getNumberFromQueue(){
+        if (!queue.isEmpty()){
+            return queue.poll();
+        }
+        return 0;
+    }
+
+    public boolean isQueueFull(){
+        System.out.println(queue);
+        if (queue.size() <= 10){
+            return false;
+        }
+        return true;
+    }
     public String getAllInfo(){
         String allInfo = "";
         for(int i = 0; i < ports.length; i++){
@@ -23,14 +50,25 @@ public class LoadBalancer {
         System.out.println(responseBody);
         return responseBody;
     }
-
+    public boolean isQueueEmpty(){
+        return queue.isEmpty();
+    }
     public Boolean isFull(){
         for(int i = 0; i < ports.length; i++){
-            if (ports[i] != "3"){
+            int counter = 0;
+            System.out.println("getInfo(ports[i])" + getInfo(ports[i]));
+            if (getInfo(ports[i]) == "3"){
+                counter += 1;
+            }
+            else{
                 return false;
             }
+            if (counter == ports.length){
+                return true;
+            }
+
         }
-        return true;
+        return false;
     }
 
     public String getFreePort(){

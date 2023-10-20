@@ -5,15 +5,8 @@ import com.example.mainserver.entity.Calculation;
 import com.example.mainserver.entity.User;
 import com.example.mainserver.repository.CalculationRepository;
 import com.example.mainserver.repository.UserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,13 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 
-import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
 public class FactorialController {
     private Long idOper = Long.valueOf(100);
+
 
     @Autowired
     private CalculationRepository calculationRepository;
@@ -66,7 +59,9 @@ public class FactorialController {
 
     @PostMapping("/calculate")
     public String calculateFactorial(@RequestParam("number") int number, Model model) {
-
+        if (number < 0 || number > 200000) {
+            throw new IllegalArgumentException("Input must be a non-negative integer and less then 200000");
+        }
 
         //BigInteger factorialResult = restTemplate.postForObject(factorialServiceUrl, null, BigInteger.class);
 
@@ -77,7 +72,12 @@ public class FactorialController {
             User currentUser = userRepository.findByEmail(currentEmail); // Використовуємо findByEmail
             Long currentUserId = currentUser.getId(); // Отримуємо ID користувача
 //
+            if (loadBalancer.isQueueFull()){
+                model.addAttribute("number", "Дуже багато запитів, спробуйте пізніше");
+                return "index";
+            }
             System.out.println(loadBalancer.getAllInfo());
+            loadBalancer.addNumberToQueue(number);
             String freePort = loadBalancer.getFreePort();
             System.out.println(freePort);
             idOper += 1;
@@ -88,8 +88,9 @@ public class FactorialController {
            // model.addAttribute("result", factorial);
             Calculation calculation = new Calculation();
             calculation.setIdResult(idOper);
-            calculation.setNumber(number);
-            calculation.setResult("Запит прийнято");
+            calculation.setNumber(loadBalancer.getNumberFromQueue());
+
+            calculation.setResult("0/"+number);
             calculation.setTime(LocalDateTime.now());
             calculation.setPort(Integer.valueOf(freePort));
             String factorialServiceUrl = "http://localhost:" + freePort + "/calculate?number=" + number+ "&idNumber=" + idOper;
@@ -116,12 +117,10 @@ public class FactorialController {
 
             List<Calculation> operations = calculationRepository.findByUser_IdOrderByTimeDesc(currentUserId);
             for (Calculation op: operations) {
-                if(op.getResult().contains("Запит прийнято") || op.getResult().contains("Іде обчислення")){
+                if(op.getResult().contains("/") || op.getResult().contains("Іде обчислення")){
                     String resultServiceUrl = "http://localhost:" + op.getPort() + "/refreshResult?idResult=" + op.getIdResult();
-                    System.out.println("idResult" + idOper);
                     String newResult = restTemplate.postForObject(resultServiceUrl, null, String.class);
                     op.setResult(newResult);
-                    //op.getId()
                     calculationRepository.save(op);
 
                 }
@@ -132,19 +131,4 @@ public class FactorialController {
         return "index";
     }
 
-//    private BigInteger calculateFactorial(int number) {
-//        if (number < 0) {
-//            throw new IllegalArgumentException("Input must be a non-negative integer");
-//        }
-//        BigInteger result = BigInteger.ONE;
-//        for (int i = 1; i <= number; i++) {
-//            System.out.println(i);
-//            if (cancelFlag) {
-//                cancelFlag = false; // Скидаємо флаг скасування
-//                return BigInteger.valueOf(0); // Повертаємо помилку скасування
-//            }
-//            result = result.multiply(BigInteger.valueOf(i));
-//        }
-//        return result;
-//    }
 }

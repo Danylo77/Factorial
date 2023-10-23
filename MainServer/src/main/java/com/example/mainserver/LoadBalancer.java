@@ -9,7 +9,11 @@ import java.util.Queue;
 import static java.lang.Math.min;
 
 public class LoadBalancer {
-    private final String[] ports = {"8081"};
+    private final String[] ports = {"8081","8082"};
+
+    public String[] getPorts(){
+        return ports;
+    }
     private Queue<Integer> queue = new LinkedList<>();
 
     public void addNumberToQueue(int number){

@@ -66,7 +66,7 @@
             <col style="width: 100px;"> <!-- Фіксована ширина для колонки "Результат" -->
             <!-- Додайте інші col-елементи для інших колонок за потреби -->
         </colgroup>
-        <form th:action="@{/refreshHistory}" method="post">
+        <form id="refreshForm" th:action="@{/refreshHistory}" method="post">
             <button type="submit" class="btn btn-primary">Оновити</button>
         </form>
         <br>

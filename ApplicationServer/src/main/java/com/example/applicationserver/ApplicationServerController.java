@@ -30,6 +30,7 @@ import org.springframework.core.task.AsyncTaskExecutor;
 
 @RestController
 public class ApplicationServerController {
+    private boolean isCanseled = false;
     Map<Long, String> myMap = new HashMap<>();
     //Map<Integer, Long> timeMap = new HashMap<>();
 
@@ -51,6 +52,7 @@ public class ApplicationServerController {
 
                     BigInteger result = BigInteger.ONE;
                     for (int i = 1; i <= number; i++) {
+                        if (isCanseled) break;
                         result = result.multiply(BigInteger.valueOf(i));
                         if (number >= 40000 && i % 1000 == 0){
 
@@ -58,6 +60,7 @@ public class ApplicationServerController {
 
                         }
                     }
+                    isCanseled = false;
 
             synchronized (myMap) {
 
@@ -95,6 +98,7 @@ public class ApplicationServerController {
         if (myMap.containsKey(idCancel)){
 //            String result = "myMap.get(idResult).toString();"
             //myMap.remove(idResult);
+            isCanseled = true;
             return ("Скасовано");
         }
         return "Іде обчислення";

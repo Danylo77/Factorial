@@ -1,5 +1,7 @@
 package com.example.mainserver.controller;
 
+import com.example.mainserver.LoadBalancer;
+import com.example.mainserver.Port;
 import com.example.mainserver.entity.Calculation;
 import com.example.mainserver.repository.CalculationRepository;
 import com.example.mainserver.repository.UserRepository;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -87,11 +90,21 @@ public class AuthController {
     }
 
     // handler method to handle list of users
-
+    LoadBalancer loadBalancer = new LoadBalancer();
     @GetMapping("/users")
     public String users(Model model){
         List<com.example.mainserver.dto.UserDto> users = userService.findAllUsers();
         model.addAttribute("users", users);
+        List<Port> ports = new ArrayList<>();
+        String[] porst = loadBalancer.getPorts();
+
+        for (int i = 0; i < loadBalancer.getPorts().length; i++) {
+            String port_temp = loadBalancer.getPorts()[i];
+            Port port = new Port(port_temp, loadBalancer.getInfo(port_temp));
+            ports.add(port);
+        }
+        model.addAttribute("ports", ports);
+
         return "users";
     }
 

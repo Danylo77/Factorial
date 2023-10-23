@@ -41,6 +41,7 @@ public class SpringSecurity {
                                 .requestMatchers("/users").hasRole("ADMIN")
                                 .requestMatchers("/login").permitAll()
                                 .requestMatchers("/refreshHistory").permitAll()
+                                .requestMatchers("/cancelCalculate").permitAll()
                 )
                 .formLogin(
                         form -> form

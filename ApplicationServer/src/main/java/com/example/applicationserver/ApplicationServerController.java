@@ -42,7 +42,7 @@ public class ApplicationServerController {
     @PostMapping("/calculate")
     @Async("factorialExecutor")
     public CompletableFuture<String> calculateFactorial(@RequestParam int number, @RequestParam Long idNumber) {
-        if (number < 0) {
+        if (number < 0 || number > 200000) {
             throw new IllegalArgumentException("Input must be a non-negative integer and less then 200000");
         }
         System.out.println("Thread " + Thread.currentThread().getName() + " for return " + number);
@@ -84,6 +84,18 @@ public class ApplicationServerController {
             String result = myMap.get(idResult).toString();
             //myMap.remove(idResult);
             return (result);
+        }
+        return "Іде обчислення";
+    }
+
+    @PostMapping("/cancelCalculate")
+    public String cancelCalculate(@RequestParam Long idCancel){
+        Set<Long> keys = myMap.keySet();
+
+        if (myMap.containsKey(idCancel)){
+//            String result = "myMap.get(idResult).toString();"
+            //myMap.remove(idResult);
+            return ("Скасовано");
         }
         return "Іде обчислення";
     }

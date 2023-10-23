@@ -131,4 +131,29 @@ public class FactorialController {
         return "index";
     }
 
+    @PostMapping("/cancelCalculate")
+    public String cancelCalculate(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getName().equals("anonymousUser")) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String currentEmail = userDetails.getUsername(); // Отримуємо email користувача
+            User currentUser = userRepository.findByEmail(currentEmail); // Використовуємо findByEmail
+            Long currentUserId = currentUser.getId();
+
+            List<Calculation> operations = calculationRepository.findByUser_IdOrderByTimeDesc(currentUserId);
+            for (Calculation op: operations) {
+                if(op.getResult().contains("/") || op.getResult().contains("Іде обчислення")){
+                    String resultServiceUrl = "http://localhost:" + op.getPort() + "/cancelCalculate?idCancel=" + op.getIdResult();
+                    String newResult = restTemplate.postForObject(resultServiceUrl, null, String.class);
+                    op.setResult(newResult);
+                    calculationRepository.save(op);
+
+                }
+            }
+
+            model.addAttribute("operations", operations);
+        }
+        return "index";
+    }
+
 }

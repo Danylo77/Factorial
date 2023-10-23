@@ -48,10 +48,7 @@ public class ApplicationServerController {
         System.out.println("Thread " + Thread.currentThread().getName() + " for return " + number);
         CompletableFuture.runAsync(() -> {
             System.out.println("Thread: " + Thread.currentThread().getName() + " started processing " + number);
-            long startTime = System.currentTimeMillis();
-            long endTime;
-            long executionTime;
-            long executionTimeInSeconds;
+
                     BigInteger result = BigInteger.ONE;
                     for (int i = 1; i <= number; i++) {
                         result = result.multiply(BigInteger.valueOf(i));
@@ -61,10 +58,7 @@ public class ApplicationServerController {
 
                         }
                     }
-            endTime = System.currentTimeMillis(); // Кінцевий час
 
-            executionTime = (endTime - startTime) / 1000; // Вирахування часу виконання в мілісекундах
-            System.out.println(executionTime);
             synchronized (myMap) {
 
                 myMap.put(idNumber, result.toString());

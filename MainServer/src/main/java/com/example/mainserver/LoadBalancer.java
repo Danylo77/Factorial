@@ -57,13 +57,17 @@ public class LoadBalancer {
         for(int i = 0; i < ports.length; i++){
             int counter = 0;
             System.out.println("getInfo(ports[i])" + getInfo(ports[i]));
-            if (getInfo(ports[i]) == "3"){
+            System.out.println(getInfo(ports[i]) == "3");
+            if (getInfo(ports[i]).toString() == "3"){
+                System.out.println("TRUEEEE");
                 counter += 1;
             }
             else{
                 return false;
             }
+            System.out.println("counter:" + counter + " ports.l:" + ports.length);
             if (counter == ports.length){
+                System.out.println("counter" + counter);
                 return true;
             }
 

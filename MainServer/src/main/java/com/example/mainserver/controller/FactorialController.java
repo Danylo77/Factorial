@@ -1,5 +1,6 @@
 package com.example.mainserver.controller;
 
+import com.example.mainserver.JwtUtils;
 import com.example.mainserver.LoadBalancer;
 import com.example.mainserver.entity.Calculation;
 import com.example.mainserver.entity.User;
@@ -7,6 +8,9 @@ import com.example.mainserver.repository.CalculationRepository;
 import com.example.mainserver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +28,7 @@ import java.util.List;
 
 @Controller
 public class FactorialController {
+
     private Long idOper = Long.valueOf(100);
 
 
@@ -42,19 +47,21 @@ public class FactorialController {
         return "index";
     }
 
-    @GetMapping("/active-threads")
-    public int getActiveThreads() {
-        if (taskExecutor instanceof ThreadPoolTaskExecutor) {
-            int activeThreads = ((ThreadPoolTaskExecutor) taskExecutor).getActiveCount();
+//    @GetMapping("/active-threads")
+//    public int getActiveThreads() {
+//        if (taskExecutor instanceof ThreadPoolTaskExecutor) {
+//            int activeThreads = ((ThreadPoolTaskExecutor) taskExecutor).getActiveCount();
+//
+//            // Надіслати інформацію на головний порт
+//            restTemplate.getForObject("http://localhost:8081/active-threads?activeThreads=" + activeThreads, String.class);
+//
+//            return activeThreads;
+//        }
+//        return -1;
+//    }
+    HttpHeaders headers = new HttpHeaders();
 
-            // Надіслати інформацію на головний порт
-            restTemplate.getForObject("http://localhost:8081/active-threads?activeThreads=" + activeThreads, String.class);
-
-            return activeThreads;
-        }
-        return -1;
-    }
-
+    JwtUtils jwtUtils = new JwtUtils();
     private LoadBalancer loadBalancer = new LoadBalancer();
 
     @PostMapping("/calculate")
@@ -94,6 +101,10 @@ public class FactorialController {
             calculation.setTime(LocalDateTime.now());
             calculation.setPort(Integer.valueOf(freePort));
             String factorialServiceUrl = "http://localhost:" + freePort + "/calculate?number=" + number+ "&idNumber=" + idOper;
+            String jwtToken = jwtUtils.generateToken(userDetails);
+            headers.set("Authorization", "Bearer " + jwtToken);
+            HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
+            System.out.println(requestEntity);
             String factorial = restTemplate.postForObject(factorialServiceUrl, null, String.class);
 
             calculation.setUser(userRepository.findById(currentUserId).orElse(null));

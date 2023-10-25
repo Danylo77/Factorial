@@ -80,9 +80,6 @@ public class ApplicationServerController {
     public String refreshHistory(@RequestParam Long idResult){
         Set<Long> keys = myMap.keySet();
 
-        for (Long key : keys) {
-            System.out.println("Ключ: " + key);
-        }
         if (myMap.containsKey(idResult)){
             String result = myMap.get(idResult).toString();
             //myMap.remove(idResult);

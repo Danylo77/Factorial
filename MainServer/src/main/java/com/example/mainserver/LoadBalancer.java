@@ -54,29 +54,19 @@ public class LoadBalancer {
         System.out.println(responseBody);
         return responseBody;
     }
+
+    public boolean isThreadFull(String port){
+        if (getInfo(port) == "3") return true;
+        return false;
+    }
     public boolean isQueueEmpty(){
         return queue.isEmpty();
     }
     public Boolean isFull(){
-        for(int i = 0; i < ports.length; i++){
-            int counter = 0;
-            System.out.println("getInfo(ports[i])" + getInfo(ports[i]));
-            System.out.println(getInfo(ports[i]) == "3");
-            if (getInfo(ports[i]).toString() == "3"){
-                System.out.println("TRUEEEE");
-                counter += 1;
-            }
-            else{
-                return false;
-            }
-            System.out.println("counter:" + counter + " ports.l:" + ports.length);
-            if (counter == ports.length){
-                System.out.println("counter" + counter);
-                return true;
-            }
-
+        for (String port: ports) {
+            if (!isThreadFull(port)) return false;
         }
-        return false;
+        return true;
     }
 
     public String getFreePort(){

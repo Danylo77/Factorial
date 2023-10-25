@@ -69,7 +69,10 @@ public class FactorialController {
         if (number < 0 || number > 200000) {
             throw new IllegalArgumentException("Input must be a non-negative integer and less then 200000");
         }
-
+        if (!loadBalancer.isQueueEmpty()){
+            loadBalancer.addNumberToQueue(number);
+            number = loadBalancer.getNumberFromQueue();
+        }
         //BigInteger factorialResult = restTemplate.postForObject(factorialServiceUrl, null, BigInteger.class);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -83,34 +86,36 @@ public class FactorialController {
                 model.addAttribute("number", "Дуже багато запитів, спробуйте пізніше");
                 return "index";
             }
-            System.out.println(loadBalancer.getAllInfo());
-            loadBalancer.addNumberToQueue(number);
-            String freePort = loadBalancer.getFreePort();
-            System.out.println(freePort);
-            idOper += 1;
+            if (!loadBalancer.isFull()) {
+                System.out.println(loadBalancer.getAllInfo());
+                loadBalancer.addNumberToQueue(number);
+                String freePort = loadBalancer.getFreePort();
+                System.out.println(freePort);
+                idOper += 1;
 
 
-  //
-            //model.addAttribute("number", number);
-           // model.addAttribute("result", factorial);
-            Calculation calculation = new Calculation();
-            calculation.setIdResult(idOper);
-            calculation.setNumber(loadBalancer.getNumberFromQueue());
+                //
+                //model.addAttribute("number", number);
+                // model.addAttribute("result", factorial);
+                Calculation calculation = new Calculation();
+                calculation.setIdResult(idOper);
+                calculation.setNumber(loadBalancer.getNumberFromQueue());
 
-            calculation.setResult("0/"+number);
-            calculation.setTime(LocalDateTime.now());
-            calculation.setPort(Integer.valueOf(freePort));
-            String factorialServiceUrl = "http://localhost:" + freePort + "/calculate?number=" + number+ "&idNumber=" + idOper;
-            String jwtToken = jwtUtils.generateToken(userDetails);
-            headers.set("Authorization", "Bearer " + jwtToken);
-            HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
-            System.out.println(requestEntity);
-            String factorial = restTemplate.postForObject(factorialServiceUrl, null, String.class);
+                calculation.setResult("0/" + number);
+                calculation.setTime(LocalDateTime.now());
+                calculation.setPort(Integer.valueOf(freePort));
+                String factorialServiceUrl = "http://localhost:" + freePort + "/calculate?number=" + number + "&idNumber=" + idOper;
+                String jwtToken = jwtUtils.generateToken(userDetails);
+                headers.set("Authorization", "Bearer " + jwtToken);
+                HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
+                System.out.println(requestEntity);
+                String factorial = restTemplate.postForObject(factorialServiceUrl, null, String.class);
 
-            calculation.setUser(userRepository.findById(currentUserId).orElse(null));
-            calculationRepository.save(calculation);
-            List<Calculation> operations = calculationRepository.findByUser_IdOrderByTimeDesc(currentUserId);
-            model.addAttribute("operations", operations);
+                calculation.setUser(userRepository.findById(currentUserId).orElse(null));
+                calculationRepository.save(calculation);
+                List<Calculation> operations = calculationRepository.findByUser_IdOrderByTimeDesc(currentUserId);
+                model.addAttribute("operations", operations);
+            }
         }
 
 
